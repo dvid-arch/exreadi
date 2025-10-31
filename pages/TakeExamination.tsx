@@ -1,12 +1,12 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
-import { PastPaper } from '../types';
+import { PastPaper, QuizResult } from '../types';
 import { pastPapersData } from '../data/pastQuestions';
 
 const TakeExamination: React.FC = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const practiceSettings = location.state as { exam: string; subject: string; year: string } | undefined;
 
     const [selectedExam, setSelectedExam] = useState<string>(practiceSettings?.exam || '');
@@ -17,7 +17,8 @@ const TakeExamination: React.FC = () => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<{[key: string]: string}>({});
     const [showAnswers, setShowAnswers] = useState<boolean>(false);
-    const [timeLeft, setTimeLeft] = useState(3600); // 60 minutes in seconds
+    const [timeLeft, setTimeLeft] = useState(3600);
+    const [score, setScore] = useState(0);
 
     const examOptions = useMemo(() => [...new Set(pastPapersData.map(p => p.exam))], []);
     const subjectOptions = useMemo(() => {
@@ -29,15 +30,25 @@ const TakeExamination: React.FC = () => {
         return [...new Set(pastPapersData.filter(p => p.exam === selectedExam && p.subject === selectedSubject).map(p => p.year))];
     }, [selectedExam, selectedSubject]);
 
+    const resetQuizState = () => {
+        setCurrentPaper(null);
+        setCurrentQuestionIndex(0);
+        setUserAnswers({});
+        setShowAnswers(false);
+        setTimeLeft(3600);
+        setScore(0);
+        setSelectedExam('');
+        setSelectedSubject('');
+        setSelectedYear('');
+        navigate('/take-examination', { replace: true });
+    };
+
     useEffect(() => {
-        if (practiceSettings) {
+        if (practiceSettings?.exam && practiceSettings?.subject && practiceSettings?.year) {
             const paper = pastPapersData.find(p => p.exam === practiceSettings.exam && p.subject === practiceSettings.subject && p.year.toString() === practiceSettings.year);
             if (paper) {
                 setCurrentPaper(paper);
-                setCurrentQuestionIndex(0);
-                setUserAnswers({});
-                setShowAnswers(false);
-                setTimeLeft(paper.questions.length * 60); // 1 min per question
+                setTimeLeft(paper.questions.length * 60);
             }
         }
     }, [practiceSettings]);
@@ -48,6 +59,7 @@ const TakeExamination: React.FC = () => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
                     clearInterval(timer);
+                    handleSubmit();
                     return 0;
                 }
                 return prevTime - 1;
@@ -68,10 +80,7 @@ const TakeExamination: React.FC = () => {
         const paper = pastPapersData.find(p => p.exam === selectedExam && p.subject === selectedSubject && p.year.toString() === selectedYear);
         if (paper) {
             setCurrentPaper(paper);
-            setCurrentQuestionIndex(0);
-            setUserAnswers({});
-            setShowAnswers(false);
-            setTimeLeft(paper.questions.length * 60); // 1 min per question
+            setTimeLeft(paper.questions.length * 60);
         } else {
             setCurrentPaper(null);
         }
@@ -81,23 +90,73 @@ const TakeExamination: React.FC = () => {
         setUserAnswers(prev => ({ ...prev, [questionId]: optionKey }));
     };
 
+    const handleSubmit = () => {
+        if (!currentPaper) return;
+
+        let correctAnswers = 0;
+        currentPaper.questions.forEach(q => {
+            if (userAnswers[q.id] === q.answer) {
+                correctAnswers++;
+            }
+        });
+
+        setScore(correctAnswers);
+
+        const result: QuizResult = {
+            id: new Date().toISOString(),
+            paperId: currentPaper.id,
+            exam: currentPaper.exam,
+            subject: currentPaper.subject,
+            year: currentPaper.year,
+            score: correctAnswers,
+            totalQuestions: currentPaper.questions.length,
+            userAnswers,
+            completedAt: Date.now(),
+        };
+
+        const pastResults: QuizResult[] = JSON.parse(localStorage.getItem('quizResults') || '[]');
+        pastResults.unshift(result);
+        localStorage.setItem('quizResults', JSON.stringify(pastResults));
+
+        setShowAnswers(true);
+    };
+
     const currentQuestion = currentPaper?.questions[currentQuestionIndex];
 
     if (currentPaper && currentQuestion) {
         return (
             <div className="flex flex-col h-full">
                 <div className="bg-white p-3 border-b shadow-sm rounded-t-lg flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="font-bold text-lg text-primary">{currentPaper.subject}</div>
+                    <div className="font-bold text-lg text-primary">{currentPaper.subject} ({currentPaper.year})</div>
                      <div className="flex items-center gap-4">
-                        <span className="font-bold text-red-500 text-lg bg-red-100 px-3 py-1 rounded">{formatTime(timeLeft)}</span>
-                        <button className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700">Submit</button>
+                        <span className={`font-bold text-lg px-3 py-1 rounded ${showAnswers ? 'text-slate-600 bg-slate-100' : 'text-red-500 bg-red-100'}`}>
+                            {showAnswers ? 'Finished' : formatTime(timeLeft)}
+                        </span>
+                        <button 
+                             onClick={() => {
+                                if (showAnswers) {
+                                    resetQuizState();
+                                } else if (window.confirm('Are you sure you want to submit?')) {
+                                    handleSubmit();
+                                }
+                            }}
+                            className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                            {showAnswers ? 'Finish Review' : 'Submit'}
+                        </button>
                     </div>
                 </div>
+
+                {showAnswers && (
+                    <Card className="my-4 text-center bg-primary-light">
+                        <h2 className="text-xl font-bold text-primary">Quiz Complete! Your Score:</h2>
+                        <p className="text-4xl font-extrabold text-slate-800 mt-2">{score} / {currentPaper.questions.length}</p>
+                    </Card>
+                )}
 
                 <div className="flex-1 bg-gray-50 p-4 overflow-y-auto">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-semibold text-slate-700">Question {currentQuestionIndex + 1}/{currentPaper.questions.length}</h3>
-                        {/* Speaker Icon */}
                     </div>
                     <p className="text-lg text-slate-800 mb-6">{currentQuestion.question}</p>
                     <div className="space-y-3">
@@ -114,7 +173,7 @@ const TakeExamination: React.FC = () => {
                              }
 
                             return (
-                                <div key={key} onClick={() => !showAnswers && handleSelectOption(currentQuestion.id, key)} className={`p-4 rounded-lg border flex items-center cursor-pointer transition-all duration-200 ${optionClass}`}>
+                                <div key={key} onClick={() => !showAnswers && handleSelectOption(currentQuestion.id, key)} className={`p-4 rounded-lg border flex items-center transition-all duration-200 ${showAnswers ? 'cursor-default' : 'cursor-pointer'} ${optionClass}`}>
                                     <span className="font-bold mr-3">{key}.</span>
                                     <span>{value}</span>
                                 </div>

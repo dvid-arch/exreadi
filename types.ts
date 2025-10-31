@@ -11,6 +11,7 @@ export interface NavItemType {
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
+  timestamp: number;
 }
 
 export interface StudyGuide {
@@ -35,15 +36,36 @@ export interface FlashcardDeck {
 }
 
 export interface PastQuestion {
-  id: string;
+  id:string;
   question: string;
   options: { [key: string]: string }; // e.g., { A: 'Option A', B: 'Option B' }
   answer: string; // The key of the correct option, e.g., 'A'
 }
 
 export interface PastPaper {
+  id: string;
   exam: string;
   subject: string;
   year: number;
   questions: PastQuestion[];
+}
+
+export interface QuizResult {
+  id: string;
+  paperId: string;
+  exam: string;
+  subject: string;
+  year: number;
+  score: number;
+  totalQuestions: number;
+  userAnswers: { [key: string]: string };
+  completedAt: number;
+}
+
+export interface MemoryCardType {
+  id: string;
+  matchId: string;
+  content: string;
+  isFlipped: boolean;
+  isMatched: boolean;
 }

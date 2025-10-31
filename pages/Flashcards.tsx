@@ -39,6 +39,17 @@ const CompletionIcon = () => (
     </svg>
 );
 
+const SearchIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+);
+const BellIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+);
+
 
 // --- INITIAL DATA ---
 const initialDecks: FlashcardDeck[] = [
@@ -109,7 +120,7 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish }) => {
                     <button onClick={handleRestart} className="font-semibold text-primary py-3 px-6 rounded-lg border-2 border-primary hover:bg-primary-light transition-colors duration-200">
                         Study Again
                     </button>
-                    <button onClick={onFinish} className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                    <button onClick={onFinish} className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-200">
                         Finish
                     </button>
                 </div>
@@ -165,6 +176,89 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish }) => {
     );
 };
 
+// --- REMINDER MODAL COMPONENT ---
+interface ReminderModalProps {
+    decks: FlashcardDeck[];
+    onSave: (data: { deckName: string, dateTime: Date }) => void;
+    onCancel: () => void;
+}
+const ReminderModal: React.FC<ReminderModalProps> = ({ decks, onSave, onCancel }) => {
+    const [deckId, setDeckId] = useState(decks[0]?.id || '');
+    const today = new Date().toISOString().split('T')[0];
+    const [date, setDate] = useState(today);
+    const [time, setTime] = useState('09:00');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const selectedDeck = decks.find(d => d.id === deckId);
+        if (!selectedDeck) {
+            alert('Please select a valid deck.');
+            return;
+        }
+        
+        const dateTime = new Date(`${date}T${time}`);
+        if (dateTime <= new Date()) {
+            alert('Please select a future date and time for the reminder.');
+            return;
+        }
+
+        onSave({ deckName: selectedDeck.name, dateTime });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+            <Card className="max-w-md w-full">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <h2 className="text-xl font-bold text-slate-800">Set Study Reminder</h2>
+                    <div>
+                        <label htmlFor="reminderDeck" className="block text-sm font-medium text-slate-700 mb-1">Deck</label>
+                        <select
+                            id="reminderDeck"
+                            value={deckId}
+                            onChange={e => setDeckId(e.target.value)}
+                            className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                            required
+                        >
+                            {decks.map(deck => (
+                                <option key={deck.id} value={deck.id}>{deck.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="reminderDate" className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                            <input
+                                id="reminderDate"
+                                type="date"
+                                value={date}
+                                onChange={e => setDate(e.target.value)}
+                                min={today}
+                                className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="reminderTime" className="block text-sm font-medium text-slate-700 mb-1">Time</label>
+                            <input
+                                id="reminderTime"
+                                type="time"
+                                value={time}
+                                onChange={e => setTime(e.target.value)}
+                                className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-4 pt-2">
+                        <button type="button" onClick={onCancel} className="font-semibold px-4 py-2">Cancel</button>
+                        <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-accent transition">Set Reminder</button>
+                    </div>
+                </form>
+            </Card>
+        </div>
+    );
+};
+
 
 // --- MAIN COMPONENT ---
 const Flashcards: React.FC = () => {
@@ -173,6 +267,8 @@ const Flashcards: React.FC = () => {
     const [isDeckFormVisible, setDeckFormVisible] = useState(false);
     const [isCardFormVisible, setCardFormVisible] = useState(false);
     const [isStudying, setIsStudying] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isReminderModalVisible, setReminderModalVisible] = useState(false);
 
     // --- DECK HANDLERS ---
     const handleSaveDeck = (deckData: { name: string, subject: string }) => {
@@ -217,15 +313,53 @@ const Flashcards: React.FC = () => {
         }
     }
 
+    const handleSetReminder = async (data: { deckName: string, dateTime: Date }) => {
+        if (!('Notification' in window)) {
+            alert('This browser does not support desktop notifications.');
+            setReminderModalVisible(false);
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            alert('Please allow notifications to set reminders.');
+            setReminderModalVisible(false);
+            return;
+        }
+
+        const timeUntilNotification = data.dateTime.getTime() - new Date().getTime();
+
+        if (timeUntilNotification < 0) {
+            alert('Cannot set a reminder for a past time.');
+            setReminderModalVisible(false);
+            return;
+        }
+        
+        setTimeout(() => {
+            new Notification('ExamRedi Study Reminder', {
+                body: `It's time to study your flashcard deck: "${data.deckName}"!`,
+            });
+        }, timeUntilNotification);
+
+        alert(`Reminder set for "${data.deckName}" at ${data.dateTime.toLocaleString()}!`);
+        setReminderModalVisible(false);
+    };
+
 
     // --- RENDER LOGIC ---
     if (selectedDeck) {
         if (isStudying) {
             return <StudySession deck={selectedDeck} onFinish={() => setIsStudying(false)} />
         }
+
+        const filteredCards = selectedDeck.cards.filter(card =>
+            card.front.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            card.back.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
         return (
             <div className="space-y-6">
-                <button onClick={() => setSelectedDeck(null)} className="flex items-center gap-2 text-slate-600 font-semibold hover:text-primary transition-colors">
+                <button onClick={() => { setSelectedDeck(null); setSearchQuery(''); }} className="flex items-center gap-2 text-slate-600 font-semibold hover:text-primary transition-colors">
                     <BackArrowIcon />
                     <span>All Decks</span>
                 </button>
@@ -249,7 +383,7 @@ const Flashcards: React.FC = () => {
                         >
                            Study Deck
                         </button>
-                        <button onClick={() => setCardFormVisible(true)} className="flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                        <button onClick={() => setCardFormVisible(true)} className="flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-200">
                             <PlusIcon />
                             <span>Add Card</span>
                         </button>
@@ -259,19 +393,52 @@ const Flashcards: React.FC = () => {
                 {isCardFormVisible && <CardForm onSave={handleSaveCard} onCancel={() => setCardFormVisible(false)} />}
                 
                 <Card>
-                    <h2 className="text-2xl font-bold text-slate-800 mb-4">Cards in this Deck ({selectedDeck.cards.length})</h2>
-                    <div className="space-y-4">
-                        {selectedDeck.cards.length > 0 ? selectedDeck.cards.map((card) => (
-                            <div key={card.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start gap-4">
-                                <div className="flex-1">
-                                    <p className="font-semibold text-slate-700">{card.front}</p>
-                                    <p className="text-slate-600 mt-1">{card.back}</p>
-                                </div>
-                                <button onClick={() => handleDeleteCard(card.id)} className="text-slate-500 hover:text-red-500 transition-colors" aria-label="Delete card">
-                                    <TrashIcon />
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
+                        <h2 className="text-2xl font-bold text-slate-800">Cards in this Deck ({filteredCards.length})</h2>
+                        <div className="relative w-full md:w-1/2 lg:w-1/3">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <SearchIcon />
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Search cards..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-gray-100 border-gray-200 border rounded-lg pl-10 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                                aria-label="Search cards in this deck"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                    aria-label="Clear search"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 hover:text-gray-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
                                 </button>
-                            </div>
-                        )) : (
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {selectedDeck.cards.length > 0 ? (
+                            filteredCards.length > 0 ? (
+                                filteredCards.map((card) => (
+                                    <div key={card.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-700">{card.front}</p>
+                                            <p className="text-slate-600 mt-1">{card.back}</p>
+                                        </div>
+                                        <button onClick={() => handleDeleteCard(card.id)} className="text-slate-500 hover:text-red-500 transition-colors" aria-label="Delete card">
+                                            <TrashIcon />
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-slate-500 text-center py-8">No cards found matching your search.</p>
+                            )
+                        ) : (
                             <p className="text-slate-500 text-center py-8">This deck is empty. Add your first card!</p>
                         )}
                     </div>
@@ -287,13 +454,20 @@ const Flashcards: React.FC = () => {
                     <h1 className="text-3xl font-bold text-slate-800">Flashcard Decks</h1>
                     <p className="text-slate-600">Select a deck to start studying or create a new one.</p>
                 </div>
-                <button onClick={() => setDeckFormVisible(true)} className="flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200 w-full md:w-auto">
-                    <PlusIcon />
-                    <span>Create New Deck</span>
-                </button>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <button onClick={() => setReminderModalVisible(true)} className="flex items-center justify-center gap-2 font-semibold text-primary py-3 px-6 rounded-lg border-2 border-primary hover:bg-primary-light transition-colors duration-200 w-full sm:w-auto">
+                        <BellIcon />
+                        <span>Set Reminder</span>
+                    </button>
+                    <button onClick={() => setDeckFormVisible(true)} className="flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-200 w-full sm:w-auto">
+                        <PlusIcon />
+                        <span>Create New Deck</span>
+                    </button>
+                </div>
             </div>
 
             {isDeckFormVisible && <DeckForm onSave={handleSaveDeck} onCancel={() => setDeckFormVisible(false)} />}
+            {isReminderModalVisible && <ReminderModal decks={decks} onSave={handleSetReminder} onCancel={() => setReminderModalVisible(false)} />}
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {decks.map((deck) => (
@@ -342,7 +516,7 @@ const DeckForm: React.FC<DeckFormProps> = ({ onSave, onCancel }) => {
                 </div>
                 <div className="flex justify-end gap-4">
                     <button type="button" onClick={onCancel} className="font-semibold px-4 py-2">Cancel</button>
-                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition">Save Deck</button>
+                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-accent transition">Save Deck</button>
                 </div>
             </form>
         </Card>
@@ -377,7 +551,7 @@ const CardForm: React.FC<CardFormProps> = ({ onSave, onCancel }) => {
                 </div>
                 <div className="flex justify-end gap-4">
                     <button type="button" onClick={onCancel} className="font-semibold px-4 py-2">Cancel</button>
-                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition">Save Card</button>
+                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-accent transition">Save Card</button>
                 </div>
             </form>
         </Card>

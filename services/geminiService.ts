@@ -54,3 +54,27 @@ export const generateStudyGuide = async (subject: string, topic: string): Promis
         return "Sorry, I encountered an error while generating the study guide. Please check the topic and try again.";
     }
 };
+
+export const researchTopic = async (searchType: 'university' | 'course', query: string): Promise<string> => {
+    let prompt = '';
+    if (searchType === 'university') {
+        prompt = `Provide a detailed overview of the Nigerian university: "${query}". Include information on its history, notable alumni, available faculties, admission requirements (especially JAMB cut-off marks if available), and student life. Format this for a prospective Nigerian student.`;
+    } else { // course
+        prompt = `Generate a comprehensive guide for a student in Nigeria considering a career in "${query}". Include the required subjects for JAMB, top universities in Nigeria offering this course, potential career paths after graduation in Nigeria, and the skills needed to succeed in this field.`;
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                systemInstruction: `You are a knowledgeable career and academic advisor for Nigerian students. Provide accurate, detailed, and encouraging information. Use clear headings, bullet points, and bold text for readability. Use markdown formatting.`,
+            },
+        });
+        
+        return response.text;
+    } catch (error) {
+        console.error("Error researching topic:", error);
+        return "I'm having trouble connecting right now. Please try again later.";
+    }
+};

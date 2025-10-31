@@ -1,8 +1,9 @@
 
+
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import { generateStudyGuide } from '../services/geminiService';
-import { allStudyGuides, featuredGuideIds } from '../data/studyGuides';
+import { allStudyGuides } from '../data/studyGuides';
 import { StudyGuide } from '../types';
 
 // Loading spinner component
@@ -134,7 +135,6 @@ const StudyGuides: React.FC = () => {
         }
     };
 
-    const featuredGuides = allStudyGuides.filter(guide => featuredGuideIds.includes(guide.id));
     const guidesBySubject = allStudyGuides.reduce((acc, guide) => {
         if (!acc[guide.subject]) {
             acc[guide.subject] = [];
@@ -147,23 +147,8 @@ const StudyGuides: React.FC = () => {
         <div className="space-y-8">
             <Card>
                 <div className="p-4">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Featured Study Guides</h2>
-                    <p className="text-slate-600 mb-4">Browse our curated handbooks for key subjects.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {featuredGuides.map(guide => (
-                            <div key={guide.id} onClick={() => setViewingGuide(guide)} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                                <h3 className="font-bold text-primary">{guide.title}</h3>
-                                <p className="text-sm text-slate-500">{guide.subject}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </Card>
-
-            <Card>
-                <div className="p-4">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-1">General Study Guides</h2>
-                    <p className="text-slate-600 mb-4">Explore a collection of guides for various subjects.</p>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-1">All Study Guides</h2>
+                    <p className="text-slate-600 mb-4">Explore a collection of guides, organized by subject.</p>
                     <div className="space-y-4">
                         {Object.entries(guidesBySubject).sort(([subjectA], [subjectB]) => subjectA.localeCompare(subjectB)).map(([subject, guides]) => (
                             <AccordionItem

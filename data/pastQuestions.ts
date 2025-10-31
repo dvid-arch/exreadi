@@ -2,6 +2,7 @@ import { PastPaper } from '../types';
 
 export const pastPapersData: PastPaper[] = [
   {
+    id: 'jamb-english-2014',
     exam: 'JAMB',
     subject: 'English',
     year: 2014,
@@ -69,6 +70,7 @@ export const pastPapersData: PastPaper[] = [
     ],
   },
   {
+    id: 'jamb-mathematics-2014',
     exam: 'JAMB',
     subject: 'Mathematics',
     year: 2014,
@@ -88,6 +90,7 @@ export const pastPapersData: PastPaper[] = [
     ]
   },
   {
+    id: 'waec-biology-2015',
     exam: 'WAEC',
     subject: 'Biology',
     year: 2015,

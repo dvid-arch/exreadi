@@ -29,6 +29,17 @@ const AiIcon = () => (
     </div>
 );
 
+const formatTimestamp = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const suggestivePrompts = [
+    "Explain photosynthesis to me like I'm 10",
+    "Give me 5 practice questions on English Tenses",
+    "Summarize Newton's Laws of Motion",
+    "Help me create a study plan for Chemistry",
+];
+
 
 const ExamWithAI: React.FC = () => {
     const [mode, setMode] = useState<'selection' | 'practice_form' | 'chat'>('selection');
@@ -38,6 +49,7 @@ const ExamWithAI: React.FC = () => {
     const chatEndRef = useRef<HTMLDivElement>(null);
     const [subject, setSubject] = useState('');
     const [topic, setTopic] = useState('');
+    const [showPrompts, setShowPrompts] = useState(false);
 
     useEffect(() => {
         if (mode === 'chat') {
@@ -47,8 +59,9 @@ const ExamWithAI: React.FC = () => {
 
     const handleStartChat = () => {
         setMessages([
-            { role: 'model', text: 'Hello! I am your AI-buddy. How can I help you prepare for your exams today?' }
+            { role: 'model', text: 'Hello! I am your AI-buddy. How can I help you prepare for your exams today?', timestamp: Date.now() }
         ]);
+        setShowPrompts(true);
         setMode('chat');
     };
 
@@ -64,13 +77,35 @@ const ExamWithAI: React.FC = () => {
         setMode('chat');
         setIsLoading(true);
         setMessages([]);
+        setShowPrompts(false);
 
         try {
             const aiResponse = await sendMessageToAI(initialPrompt, []);
-            setMessages([{ role: 'model', text: aiResponse }]);
+            setMessages([{ role: 'model', text: aiResponse, timestamp: Date.now() }]);
         } catch (error) {
             console.error(error);
-            setMessages([{ role: 'model', text: 'Sorry, I encountered an error while setting up the practice session. Please try again.' }]);
+            setMessages([{ role: 'model', text: 'Sorry, I encountered an error while setting up the practice session. Please try again.', timestamp: Date.now() }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const sendUserMessageToAI = async (messageText: string) => {
+        if (!messageText.trim() || isLoading) return;
+
+        setShowPrompts(false);
+
+        const newMessages: ChatMessage[] = [...messages, { role: 'user', text: messageText, timestamp: Date.now() }];
+        setMessages(newMessages);
+        setUserInput('');
+        setIsLoading(true);
+
+        try {
+            const aiResponse = await sendMessageToAI(messageText, messages);
+            setMessages([...newMessages, { role: 'model', text: aiResponse, timestamp: Date.now() }]);
+        } catch (error) {
+            console.error(error);
+            setMessages([...newMessages, { role: 'model', text: 'Sorry, I encountered an error. Please try again.', timestamp: Date.now() }]);
         } finally {
             setIsLoading(false);
         }
@@ -78,22 +113,11 @@ const ExamWithAI: React.FC = () => {
     
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!userInput.trim() || isLoading) return;
+        sendUserMessageToAI(userInput);
+    };
 
-        const newMessages: ChatMessage[] = [...messages, { role: 'user', text: userInput }];
-        setMessages(newMessages);
-        setUserInput('');
-        setIsLoading(true);
-
-        try {
-            const aiResponse = await sendMessageToAI(userInput, messages);
-            setMessages([...newMessages, { role: 'model', text: aiResponse }]);
-        } catch (error) {
-            console.error(error);
-            setMessages([...newMessages, { role: 'model', text: 'Sorry, I encountered an error. Please try again.' }]);
-        } finally {
-            setIsLoading(false);
-        }
+    const handlePromptClick = (prompt: string) => {
+        sendUserMessageToAI(prompt);
     };
 
     const handleNewSession = () => {
@@ -101,6 +125,7 @@ const ExamWithAI: React.FC = () => {
         setUserInput('');
         setSubject('');
         setTopic('');
+        setShowPrompts(false);
         setMode('selection');
     };
 
@@ -183,12 +208,15 @@ const ExamWithAI: React.FC = () => {
                     New Session
                 </button>
             </div>
-            <div className="flex-1 p-6 overflow-y-auto space-y-6">
+            <div className="flex-1 p-6 overflow-y-auto space-y-4">
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                         {msg.role === 'model' && <AiIcon />}
-                        <div className={`max-w-lg p-3 rounded-2xl ${msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-gray-100 text-slate-800 rounded-bl-none'}`}>
-                            <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
+                        <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                           <div className={`max-w-lg p-3 rounded-2xl ${msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-gray-100 text-slate-800 rounded-bl-none'}`}>
+                                <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
+                           </div>
+                           <span className="text-xs text-gray-400 mt-1 px-1">{formatTimestamp(msg.timestamp)}</span>
                         </div>
                          {msg.role === 'user' && <UserIcon />}
                     </div>
@@ -202,6 +230,22 @@ const ExamWithAI: React.FC = () => {
                                 <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                                 <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce"></span>
                            </div>
+                        </div>
+                    </div>
+                )}
+                 {showPrompts && !isLoading && messages.length <= 1 && (
+                    <div className="pt-4">
+                        <p className="text-sm font-semibold text-slate-600 mb-2 text-center">Try one of these prompts:</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {suggestivePrompts.map((prompt, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handlePromptClick(prompt)}
+                                    className="bg-primary-light text-primary text-sm font-medium px-4 py-2 rounded-full hover:bg-secondary-light transition-colors"
+                                >
+                                    {prompt}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 )}

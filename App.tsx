@@ -7,6 +7,10 @@ import Quizzes from './pages/Quizzes';
 import ExamWithAI from './pages/ExamWithAI';
 import StudyGuides from './pages/StudyGuides';
 import TakeExamination from './pages/TakeExamination';
+import EducationalGames from './pages/EducationalGames';
+import Performance from './pages/Performance';
+import MemoryMatchGame from './pages/MemoryMatchGame';
+import CareerInstitutions from './pages/CareerInstitutions';
 
 const App: React.FC = () => {
   return (
@@ -21,6 +25,10 @@ const App: React.FC = () => {
           <Route path="/ai-buddy" element={<ExamWithAI />} />
           <Route path="/take-examination" element={<TakeExamination />} />
           <Route path="/study-guides" element={<StudyGuides />} />
+          <Route path="/games" element={<EducationalGames />} />
+          <Route path="/games/memory-match" element={<MemoryMatchGame />} />
+          <Route path="/performance" element={<Performance />} />
+          <Route path="/career-institutions" element={<CareerInstitutions />} />
         </Routes>
       </main>
     </div>

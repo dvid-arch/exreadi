@@ -138,5 +138,3 @@ This is a fundamental principle in electronics and circuit analysis.
 `
   }
 ];
-
-export const featuredGuideIds: string[] = ['sg1', 'sg2', 'sg3'];
