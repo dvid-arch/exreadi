@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CareerIcon as CareerIconImported } from '../constants'; // Using an alias to avoid naming conflict
@@ -27,45 +26,44 @@ const tiles = [
 ];
 
 const DashboardTile: React.FC<{ title: string; color: string; path: string; icon: React.ReactNode; }> = ({ title, color, path, icon }) => (
-    <Link to={path} className={`bg-${color} p-4 rounded-lg shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-center items-center text-center`}>
-        <div className="w-10 h-10 mb-2 rounded-full bg-white flex items-center justify-center">
+    <Link to={path} className={`bg-${color} p-6 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-center items-center text-center`}>
+        <div className="w-14 h-14 mb-3 rounded-full bg-white flex items-center justify-center shadow">
              {icon}
         </div>
-        <p className="font-semibold text-slate-800">{title}</p>
+        <p className="font-semibold text-slate-800 text-lg">{title}</p>
     </Link>
 );
 
-const CbtPracticeCard = () => (
-     <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col justify-center items-center text-center relative overflow-hidden border-2 border-primary-light transition-transform duration-300 transform hover:scale-105 hover:-rotate-1">
-         <div className="absolute -top-4 -left-12 transform rotate-45 bg-primary-light w-32 h-16"></div>
-         <div className="relative z-10">
-            <h2 className="text-4xl font-extrabold text-primary">CBT PRACTICE</h2>
-            <p className="text-slate-600 mt-2 font-semibold">examredi.com</p>
-            <div className="w-4 h-4 bg-primary rounded-full mx-auto my-4 animate-pulse"></div>
-         </div>
+const WelcomeBanner = () => (
+    <div className="bg-primary text-white p-6 sm:p-8 rounded-2xl shadow-lg relative overflow-hidden">
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-green-600 rounded-full opacity-30"></div>
+        <div className="absolute -left-12 bottom-4 w-40 h-40 bg-green-600 rounded-full opacity-20 transform rotate-45"></div>
+        <div className="relative z-10">
+            <h1 className="text-2xl sm:text-3xl font-bold">Welcome back, Owoidighe-1!</h1>
+            <p className="mt-2 text-green-100 max-w-2xl">Ready to ace your exams? Let's dive into some practice questions or review your study guides.</p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-4">
+                <Link to="/practice" className="bg-white text-primary font-bold py-3 px-6 rounded-lg hover:bg-green-100 transition-colors duration-200 text-center">Start Practice Session</Link>
+                <Link to="/performance" className="bg-transparent border-2 border-white font-semibold py-3 px-6 rounded-lg hover:bg-white hover:text-primary transition-colors duration-200 text-center">View Performance</Link>
+            </div>
+        </div>
     </div>
 );
 
 
 const Dashboard: React.FC = () => {
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                {/* Main Content Area */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {tiles.map(tile => (
-                            <DashboardTile key={tile.title} {...tile} />
-                        ))}
-                    </div>
-                </div>
+        <div className="space-y-8">
+            <WelcomeBanner />
 
-                {/* Right Sidebar Area */}
-                <div className="lg:col-span-1">
-                    <CbtPracticeCard />
+            <div>
+                 <h2 className="text-2xl font-bold text-slate-800 mb-4">Explore Your Tools</h2>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {tiles.map((tile) => (
+                        <DashboardTile key={tile.title} {...tile} />
+                    ))}
                 </div>
             </div>
+
              <div className="bg-white p-3 rounded-lg shadow-sm text-center">
                 <p className="text-slate-700 text-sm">
                     <span className="font-bold text-primary mr-2">Tip:</span> Consistent practice is the key to mastering any subject. Try a new topic today!

@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/Card';
@@ -32,9 +34,9 @@ const Performance: React.FC = () => {
         const totalQuestions = results.reduce((sum, r) => sum + r.totalQuestions, 0);
         const avg = totalQuestions > 0 ? (totalScore / totalQuestions) * 100 : 0;
 
-        // FIX: Explicitly typed the accumulator for the `reduce` function.
-        // Without this, TypeScript infers the initial `{}` as an empty object type, 
-        // leading to errors when trying to access properties on it.
+        // FIX: The initial value of the reduce function needs to be explicitly typed.
+        // Typing only the `acc` parameter in the callback can lead to type inference issues.
+        // Using a generic argument for `reduce` correctly sets the accumulator's type.
         const bySubject = results.reduce<Record<string, { scores: number[]; totalQuestions: number }>>((acc, result) => {
             if (!acc[result.subject]) {
                 acc[result.subject] = { scores: [], totalQuestions: 0 };

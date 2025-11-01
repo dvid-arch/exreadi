@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MenuIcon, NAV_ITEMS } from '../constants';
 
 const Logo = () => (
@@ -15,12 +15,20 @@ const Logo = () => (
     </div>
 );
 
+const SearchIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+);
+
 interface HeaderProps {
     onMenuClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
 
     const getPageTitle = () => {
         const path = location.pathname;
@@ -45,6 +53,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     
     const pageTitle = getPageTitle();
 
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate('/question-search', { state: { query: searchQuery } });
+            setSearchQuery('');
+        }
+    };
+
     return (
         <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10 flex-shrink-0">
             <div className="container mx-auto px-4">
@@ -65,6 +81,24 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                            {pageTitle}
                         </h1>
                     </div>
+                    
+                    {/* Search Bar - fills the gap */}
+                    <div className="hidden md:flex flex-1 justify-center px-8 lg:px-16">
+                        <form onSubmit={handleSearch} className="w-full max-w-md relative">
+                             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <SearchIcon />
+                            </span>
+                            <input
+                                type="search"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search past questions..."
+                                className="w-full bg-slate-100 border-transparent rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                                aria-label="Search past questions"
+                            />
+                        </form>
+                    </div>
+
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100">
                             <img

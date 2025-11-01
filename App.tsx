@@ -24,7 +24,7 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-100 font-sans">
       {showHeaderAndSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
-      <div className={`flex-1 flex flex-col ${showHeaderAndSidebar ? 'md:ml-64' : ''}`}>
+      <div className={`flex-1 flex flex-col ${showHeaderAndSidebar ? '' : ''}`}>
         {showHeaderAndSidebar && <Header onMenuClick={() => setIsSidebarOpen(true)} />}
         <main className={`flex-1 overflow-y-auto ${showHeaderAndSidebar ? 'p-4 sm:p-6 lg:p-8' : ''}`}>
           <Routes>

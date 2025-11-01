@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Card from '../components/Card';
 import { pastPapersData } from '../data/pastQuestions';
 import { PastQuestion } from '../types';
@@ -13,15 +15,15 @@ const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const BookOpenIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
 
 const QuestionSearch: React.FC = () => {
+    const location = useLocation();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!query.trim()) return;
+    const performSearch = (searchQuery: string) => {
+        if (!searchQuery.trim()) return;
 
-        const lowerCaseQuery = query.toLowerCase();
+        const lowerCaseQuery = searchQuery.toLowerCase();
         const allQuestions: SearchResult[] = pastPapersData.flatMap(paper =>
             paper.questions.map(q => ({
                 ...q,
@@ -37,6 +39,20 @@ const QuestionSearch: React.FC = () => {
 
         setResults(filteredResults);
         setHasSearched(true);
+    };
+    
+    useEffect(() => {
+        const initialQuery = location.state?.query;
+        if (typeof initialQuery === 'string') {
+            setQuery(initialQuery);
+            performSearch(initialQuery);
+        }
+    }, [location.state]);
+
+
+    const handleSearchFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        performSearch(query);
     };
     
     const highlightQuery = (text: string, highlight: string) => {
@@ -55,7 +71,7 @@ const QuestionSearch: React.FC = () => {
             <Card>
                 <h1 className="text-3xl font-bold text-slate-800">Question Search</h1>
                 <p className="text-slate-600 mt-2">Find specific questions by searching for a keyword or topic.</p>
-                <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+                <form onSubmit={handleSearchFormSubmit} className="mt-4 flex gap-2">
                     <div className="relative flex-grow">
                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <SearchIcon />
