@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/Card';
@@ -34,17 +35,16 @@ const Performance: React.FC = () => {
         const totalQuestions = results.reduce((sum, r) => sum + r.totalQuestions, 0);
         const avg = totalQuestions > 0 ? (totalScore / totalQuestions) * 100 : 0;
 
-        // FIX: The initial value of the reduce function needs to be explicitly typed.
-        // Typing only the `acc` parameter in the callback can lead to type inference issues.
-        // Using a generic argument for `reduce` correctly sets the accumulator's type.
-        const bySubject = results.reduce<Record<string, { scores: number[]; totalQuestions: number }>>((acc, result) => {
+        // FIX: The initial value for reduce is cast to the correct type to ensure
+        // the accumulator (`acc`) is correctly typed, preventing downstream type errors.
+        const bySubject = results.reduce((acc, result) => {
             if (!acc[result.subject]) {
                 acc[result.subject] = { scores: [], totalQuestions: 0 };
             }
             acc[result.subject].scores.push(result.score);
             acc[result.subject].totalQuestions += result.totalQuestions;
             return acc;
-        }, {});
+        }, {} as Record<string, { scores: number[]; totalQuestions: number }>);
 
         const subjectAverages = Object.entries(bySubject).map(([subject, data]) => {
             const totalScored = data.scores.reduce((sum, s) => sum + s, 0);
