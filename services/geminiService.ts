@@ -3,13 +3,14 @@ import { ChatMessage } from "../types";
 
 const API_KEY = process.env.API_KEY;
 
-if (!API_KEY) {
-  // In a real app, you'd want to handle this more gracefully.
-  // For this example, we'll throw an error if the API key is not set.
-  throw new Error("API_KEY environment variable not set.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// We will check for the API key inside the functions to avoid crashing the app on load.
+const getAiInstance = () => {
+  if (!API_KEY) {
+    console.error("API_KEY environment variable not set.");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey: API_KEY });
+};
 
 const buildHistory = (messages: ChatMessage[]): Content[] => {
     return messages.map(msg => ({
@@ -18,7 +19,14 @@ const buildHistory = (messages: ChatMessage[]): Content[] => {
     }));
 };
 
+const missingApiKeyError = "The AI service is not configured. Please ensure the API Key is set up correctly in the Vercel deployment environment variables.";
+
 export const sendMessageToAI = async (message: string, history: ChatMessage[]): Promise<string> => {
+    const ai = getAiInstance();
+    if (!ai) {
+        return missingApiKeyError;
+    }
+
     try {
         const currentChat: Chat = ai.chats.create({
             model: 'gemini-2.5-pro',
@@ -38,6 +46,11 @@ export const sendMessageToAI = async (message: string, history: ChatMessage[]): 
 };
 
 export const generateStudyGuide = async (subject: string, topic: string): Promise<string> => {
+    const ai = getAiInstance();
+    if (!ai) {
+        return missingApiKeyError;
+    }
+    
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
@@ -56,11 +69,16 @@ export const generateStudyGuide = async (subject: string, topic: string): Promis
 };
 
 export const researchTopic = async (searchType: 'university' | 'course', query: string): Promise<string> => {
+    const ai = getAiInstance();
+    if (!ai) {
+        return missingApiKeyError;
+    }
+
     let prompt = '';
     if (searchType === 'university') {
         prompt = `Provide a detailed overview of the Nigerian university: "${query}". Include information on its history, notable alumni, available faculties, admission requirements (especially JAMB cut-off marks if available), and student life. Format this for a prospective Nigerian student.`;
     } else { // course
-        prompt = `Generate a comprehensive guide for a student in Nigeria considering a career in "${query}". Include the required subjects for JAMB, top universities in Nigeria offering this course, potential career paths after graduation in Nigeria, and the skills needed to succeed in this field.`;
+        prompt = `Generate a comprehensive guide for a student in Nigeria considering a career in "${query}". Include the required subjects for JAMB, top universities in Nigeria offering this course, a potential career paths after graduation in Nigeria, and the skills needed to succeed in this field.`;
     }
 
     try {

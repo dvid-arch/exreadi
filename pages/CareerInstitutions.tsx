@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import Card from '../components/Card';
 import { researchTopic } from '../services/geminiService';
 import { CareerIcon } from '../constants';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const Spinner = () => (
     <div className="flex justify-center items-center py-10">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
 );
-
-const FormattedContent = ({ content }: { content: string }) => {
-    return <div className="text-slate-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: content.replace(/# (.*)/g, '<h1 class="text-2xl font-bold text-slate-800 my-4">$1</h1>').replace(/## (.*)/g, '<h2 class="text-xl font-bold text-slate-700 my-3">$1</h2>').replace(/\* \*\*(.*)\*\*/g, '<h3 class="text-lg font-bold text-slate-700 my-2">$1</h3>').replace(/\*\s/g, '• ') }} />;
-};
 
 const CareerInstitutions: React.FC = () => {
     const [searchType, setSearchType] = useState<'university' | 'course'>('university');
@@ -86,7 +83,7 @@ const CareerInstitutions: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isLoading ? 'Researching...' : 'Research'}
                             </button>
@@ -114,7 +111,7 @@ const CareerInstitutions: React.FC = () => {
                         ) : error ? (
                             <p className="text-red-500 text-center">{error}</p>
                         ) : (
-                            <FormattedContent content={result} />
+                            <MarkdownRenderer content={result} />
                         )}
                     </div>
                 </Card>

@@ -1,10 +1,9 @@
-
-
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import { generateStudyGuide } from '../services/geminiService';
 import { allStudyGuides } from '../data/studyGuides';
 import { StudyGuide } from '../types';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 // Loading spinner component
 const Spinner = () => (
@@ -19,10 +18,6 @@ const GuideIcon = () => (
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
     </svg>
 );
-
-const FormattedGuideContent = ({ content }: { content: string }) => {
-    return <div className="text-slate-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: content.replace(/# (.*)/g, '<h1 class="text-2xl font-bold text-slate-800 my-4">$1</h1>').replace(/## (.*)/g, '<h2 class="text-xl font-bold text-slate-700 my-3">$1</h2>').replace(/\*   /g, '• ') }} />;
-};
 
 const GuideModal: React.FC<{ guide: StudyGuide, onClose: () => void }> = ({ guide, onClose }) => {
     return (
@@ -46,7 +41,7 @@ const GuideModal: React.FC<{ guide: StudyGuide, onClose: () => void }> = ({ guid
                     </button>
                 </div>
                 <div className="p-6 overflow-y-auto">
-                    <FormattedGuideContent content={guide.content.trim()} />
+                    <MarkdownRenderer content={guide.content.trim()} />
                 </div>
             </div>
         </div>
@@ -203,7 +198,7 @@ const StudyGuides: React.FC = () => {
                         <button 
                             type="submit" 
                             disabled={isLoading}
-                            className="w-full md:w-1/2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+                            className="w-full md:w-1/2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
                         >
                             {isLoading ? 'Generating...' : 'Generate Guide'}
                         </button>
@@ -219,7 +214,7 @@ const StudyGuides: React.FC = () => {
                         {generatedGuide && (
                             <div>
                                 <h2 className="text-2xl font-bold text-slate-800 border-b pb-3 mb-4 capitalize">{topic}</h2>
-                                <FormattedGuideContent content={generatedGuide} />
+                                <MarkdownRenderer content={generatedGuide} />
                             </div>
                         )}
                     </div>

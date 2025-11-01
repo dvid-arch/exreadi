@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
@@ -21,31 +20,14 @@ const Quizzes: React.FC = () => {
 
     const handleGetStarted = () => {
         if (selectedSubjects.length === 0) {
-            alert('Please select a subject to start.');
-            return;
-        }
-        
-        // Take the first selected subject to start the exam
-        const subjectToStart = selectedSubjects[0];
-
-        // Find the most recent JAMB paper for that subject
-        const papersForSubject = pastPapersData
-            .filter(p => p.exam === 'JAMB' && p.subject === subjectToStart)
-            .sort((a, b) => b.year - a.year);
-
-        if (papersForSubject.length === 0) {
-            alert(`Sorry, no JAMB practice papers found for ${subjectToStart}. Please try another subject.`);
+            alert('Please select at least one subject to start.');
             return;
         }
 
-        const latestPaper = papersForSubject[0];
-
-        // Navigate to the examination page with the test details
+        // Navigate to the examination page with the selected subjects
         navigate('/take-examination', {
             state: {
-                exam: 'JAMB',
-                subject: latestPaper.subject,
-                year: latestPaper.year.toString(),
+                subjects: selectedSubjects,
             },
         });
     };
@@ -54,7 +36,7 @@ const Quizzes: React.FC = () => {
         <div className="space-y-6">
             <Card>
                 <h1 className="text-3xl font-bold text-slate-800">Practice For UTME</h1>
-                <p className="text-slate-600 mt-2">Select the subjects you want to practice for the Unified Tertiary Matriculation Examination (UTME).</p>
+                <p className="text-slate-600 mt-2">Select one or more subjects to start a practice session.</p>
             </Card>
 
             <Card>

@@ -19,10 +19,10 @@ const tiles = [
     { title: 'Question Search', color: 'tile-green', path: '/take-examination', icon: <SearchIcon /> },
     { title: 'Performance Analysis', color: 'tile-orange', path: '/performance', icon: <PerformanceIcon /> },
     { title: 'Educational Games', color: 'tile-yellow', path: '/games', icon: <GamesIcon /> },
-    { title: 'UTME Literature Books', color: 'tile-purple', path: '/dashboard', icon: <BookIcon /> },
-    { title: 'UTME Challenge', color: 'tile-green', path: '/dashboard', icon: <ChallengeIcon /> },
+    { title: 'UTME Literature Books', color: 'tile-purple', path: '/literature', icon: <BookIcon /> },
+    { title: 'UTME Challenge', color: 'tile-green', path: '/challenge', icon: <ChallengeIcon /> },
     { title: 'Career And Institutions', color: 'tile-blue', path: '/career-institutions', icon: <CareerIcon /> },
-    { title: 'Dictionary', color: 'tile-pink', path: '/dashboard', icon: <DictionaryIcon /> },
+    { title: 'Dictionary', color: 'tile-pink', path: '/dictionary', icon: <DictionaryIcon /> },
 ];
 
 const DashboardTile: React.FC<{ title: string; color: string; path: string; icon: React.ReactNode; }> = ({ title, color, path, icon }) => (
@@ -35,7 +35,7 @@ const DashboardTile: React.FC<{ title: string; color: string; path: string; icon
 );
 
 const CbtPracticeCard = () => (
-     <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col justify-center items-center text-center relative overflow-hidden transform -rotate-3 border-2 border-primary-light">
+     <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col justify-center items-center text-center relative overflow-hidden border-2 border-primary-light transition-transform duration-300 transform hover:scale-105 hover:-rotate-1">
          <div className="absolute -top-4 -left-12 transform rotate-45 bg-primary-light w-32 h-16"></div>
          <div className="relative z-10">
             <h2 className="text-4xl font-extrabold text-primary">CBT PRACTICE</h2>
@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
                 
                 {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {tiles.map(tile => (
                             <DashboardTile key={tile.title} {...tile} />
                         ))}

@@ -121,7 +121,7 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish }) => {
                         Study Again
                     </button>
                     <button onClick={onFinish} className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-200">
-                        Finish
+                        Back to Deck
                     </button>
                 </div>
             </Card>
@@ -140,16 +140,18 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish }) => {
                 </div>
             </div>
 
-            <div 
-                onClick={handleFlip} 
-                className={`w-full aspect-video rounded-2xl p-6 flex items-center justify-center text-center shadow-lg transition-transform duration-500 cursor-pointer select-none ${isFlipped ? 'bg-primary-light [transform:rotateY(180deg)]' : 'bg-white'}`}
-                style={{ transformStyle: 'preserve-3d' }}
-            >
-                <div className={`transition-opacity duration-300 ${isFlipped ? 'opacity-0' : 'opacity-100'}`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(0deg)' }}>
-                    <p className="text-2xl md:text-3xl font-bold text-slate-800">{currentCard.front}</p>
-                </div>
-                <div className={`absolute top-0 left-0 w-full h-full p-6 flex items-center justify-center opacity-0 transition-opacity duration-300 ${isFlipped ? 'opacity-100' : 'opacity-0'}`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
-                    <p className="text-xl md:text-2xl text-slate-700">{currentCard.back}</p>
+            <div className="max-w-3xl mx-auto">
+                <div 
+                    onClick={handleFlip} 
+                    className={`w-full aspect-video rounded-2xl p-6 flex items-center justify-center text-center shadow-lg transition-transform duration-500 cursor-pointer select-none ${isFlipped ? 'bg-primary-light [transform:rotateY(180deg)]' : 'bg-white'}`}
+                    style={{ transformStyle: 'preserve-3d' }}
+                >
+                    <div className={`transition-opacity duration-300 ${isFlipped ? 'opacity-0' : 'opacity-100'}`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(0deg)' }}>
+                        <p className="text-2xl md:text-3xl font-bold text-slate-800">{currentCard.front}</p>
+                    </div>
+                    <div className={`absolute top-0 left-0 w-full h-full p-6 flex items-center justify-center opacity-0 transition-opacity duration-300 ${isFlipped ? 'opacity-100' : 'opacity-0'}`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                        <p className="text-xl md:text-2xl text-slate-700">{currentCard.back}</p>
+                    </div>
                 </div>
             </div>
 

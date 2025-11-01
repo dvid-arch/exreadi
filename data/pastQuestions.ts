@@ -87,6 +87,24 @@ export const pastPapersData: PastPaper[] = [
         options: { A: '154 cm²', B: '44 cm²', C: '49 cm²', D: '144 cm²' },
         answer: 'A',
       },
+      {
+        id: 'math3',
+        question: 'Simplify the expression: 3a - 2b + 4a + 5b',
+        options: { A: '7a + 3b', B: 'a + 3b', C: '7a - 3b', D: 'a - 3b' },
+        answer: 'A',
+      },
+      {
+        id: 'math4',
+        question: 'A bag contains 5 red balls and 3 blue balls. What is the probability of picking a blue ball?',
+        options: { A: '5/8', B: '3/8', C: '1/2', D: '3/5' },
+        answer: 'B',
+      },
+      {
+        id: 'math5',
+        question: 'Find the next number in the sequence: 2, 5, 10, 17, ...',
+        options: { A: '24', B: '25', C: '26', D: '27' },
+        answer: 'C',
+      },
     ]
   },
   {
@@ -100,7 +118,107 @@ export const pastPapersData: PastPaper[] = [
             question: 'Which of these is NOT a characteristic of living things?',
             options: { A: 'Respiration', B: 'Movement', C: 'Crystallization', D: 'Reproduction' },
             answer: 'C'
+        },
+        {
+            id: 'bio2',
+            question: 'The part of the cell that controls all its activities is the?',
+            options: { A: 'Mitochondrion', B: 'Nucleus', C: 'Cell wall', D: 'Cytoplasm' },
+            answer: 'B'
+        },
+        {
+            id: 'bio3',
+            question: 'Which of the following is a producer in an ecosystem?',
+            options: { A: 'Lion', B: 'Goat', C: 'Grass', D: 'Mushroom' },
+            answer: 'C'
+        },
+        {
+            id: 'bio4',
+            question: 'The process by which plants lose water through their leaves is called?',
+            options: { A: 'Photosynthesis', B: 'Respiration', C: 'Transpiration', D: 'Osmosis' },
+            answer: 'C'
+        },
+        {
+            id: 'bio5',
+            question: 'Which of these blood components is responsible for clotting?',
+            options: { A: 'Red blood cells', B: 'White blood cells', C: 'Plasma', D: 'Platelets' },
+            answer: 'D'
         }
+    ]
+  },
+   {
+    id: 'jamb-physics-2014',
+    exam: 'JAMB',
+    subject: 'Physics',
+    year: 2014,
+    questions: [
+      {
+        id: 'phy1',
+        question: 'Which of the following is a vector quantity?',
+        options: { A: 'Speed', B: 'Mass', C: 'Velocity', D: 'Temperature' },
+        answer: 'C',
+      },
+      {
+        id: 'phy2',
+        question: 'A car accelerates uniformly from rest to a speed of 20 m/s in 5 seconds. Calculate its acceleration.',
+        options: { A: '2 m/s²', B: '4 m/s²', C: '5 m/s²', D: '10 m/s²' },
+        answer: 'B',
+      },
+      {
+        id: 'phy3',
+        question: 'The unit of electrical resistance is?',
+        options: { A: 'Volt', B: 'Ampere', C: 'Watt', D: 'Ohm' },
+        answer: 'D',
+      },
+      {
+        id: 'phy4',
+        question: 'Which law states that for every action, there is an equal and opposite reaction?',
+        options: { A: "Newton's First Law", B: "Newton's Second Law", C: "Newton's Third Law", D: "Ohm's Law" },
+        answer: 'C',
+      },
+      {
+        id: 'phy5',
+        question: 'Light travels fastest in which medium?',
+        options: { A: 'Water', B: 'Glass', C: 'Air', D: 'Vacuum' },
+        answer: 'D',
+      },
+    ]
+  },
+  {
+    id: 'jamb-chemistry-2014',
+    exam: 'JAMB',
+    subject: 'Chemistry',
+    year: 2014,
+    questions: [
+      {
+        id: 'chem1',
+        question: 'The chemical symbol for Gold is?',
+        options: { A: 'Ag', B: 'Au', C: 'Go', D: 'Gd' },
+        answer: 'B',
+      },
+      {
+        id: 'chem2',
+        question: 'Which of the following is an acid?',
+        options: { A: 'NaOH', B: 'H2O', C: 'NaCl', D: 'HCl' },
+        answer: 'D',
+      },
+      {
+        id: 'chem3',
+        question: 'The process of a solid turning directly into a gas is called?',
+        options: { A: 'Melting', B: 'Evaporation', C: 'Sublimation', D: 'Condensation' },
+        answer: 'C',
+      },
+      {
+        id: 'chem4',
+        question: 'What is the atomic number of an element with 11 protons and 12 neutrons?',
+        options: { A: '11', B: '12', C: '23', D: '1' },
+        answer: 'A',
+      },
+      {
+        id: 'chem5',
+        question: 'Which gas is most abundant in the Earth\'s atmosphere?',
+        options: { A: 'Oxygen', B: 'Carbon Dioxide', C: 'Nitrogen', D: 'Argon' },
+        answer: 'C',
+      },
     ]
   }
 ];

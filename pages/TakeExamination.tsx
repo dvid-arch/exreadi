@@ -1,251 +1,257 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Card from '../components/Card';
-import { PastPaper, QuizResult } from '../types';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { ChallengeQuestion, QuizResult } from '../types';
 import { pastPapersData } from '../data/pastQuestions';
+
+const TOTAL_QUESTIONS = 40;
+
+const shuffleArray = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
+
+const preparePracticeQuestions = (subjects: string[]): ChallengeQuestion[] => {
+    if (!subjects || subjects.length === 0) return [];
+    
+    let allQuestions: ChallengeQuestion[] = [];
+    const questionsPerSubject = Math.floor(TOTAL_QUESTIONS / subjects.length);
+    let remainder = TOTAL_QUESTIONS % subjects.length;
+
+    subjects.forEach((subject, index) => {
+        const questionsForSubject = pastPapersData
+            .filter(paper => paper.subject === subject)
+            .flatMap(paper => paper.questions)
+            .map(q => ({ ...q, subject }));
+
+        const shuffled = shuffleArray(questionsForSubject);
+        const numToTake = questionsPerSubject + (index < remainder ? 1 : 0);
+        
+        allQuestions.push(...shuffled.slice(0, numToTake));
+    });
+
+    return allQuestions;
+};
+
+const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+};
 
 const TakeExamination: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const practiceSettings = location.state as { exam: string; subject: string; year: string } | undefined;
+    const practiceSubjects = location.state?.subjects as string[] | undefined;
 
-    const [selectedExam, setSelectedExam] = useState<string>(practiceSettings?.exam || '');
-    const [selectedSubject, setSelectedSubject] = useState<string>(practiceSettings?.subject || '');
-    const [selectedYear, setSelectedYear] = useState<string>(practiceSettings?.year || '');
-    
-    const [currentPaper, setCurrentPaper] = useState<PastPaper | null>(null);
+    const [questions, setQuestions] = useState<ChallengeQuestion[]>([]);
+    const [activeSubject, setActiveSubject] = useState<string>('');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<{[key: string]: string}>({});
-    const [showAnswers, setShowAnswers] = useState<boolean>(false);
-    const [timeLeft, setTimeLeft] = useState(3600);
-    const [score, setScore] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(0);
+    const [isFinished, setIsFinished] = useState(false);
+    const [finalScore, setFinalScore] = useState(0);
 
-    const examOptions = useMemo(() => [...new Set(pastPapersData.map(p => p.exam))], []);
-    const subjectOptions = useMemo(() => {
-        if (!selectedExam) return [];
-        return [...new Set(pastPapersData.filter(p => p.exam === selectedExam).map(p => p.subject))];
-    }, [selectedExam]);
-    const yearOptions = useMemo(() => {
-        if (!selectedExam || !selectedSubject) return [];
-        return [...new Set(pastPapersData.filter(p => p.exam === selectedExam && p.subject === selectedSubject).map(p => p.year))];
-    }, [selectedExam, selectedSubject]);
-
-    const resetQuizState = () => {
-        setCurrentPaper(null);
-        setCurrentQuestionIndex(0);
-        setUserAnswers({});
-        setShowAnswers(false);
-        setTimeLeft(3600);
-        setScore(0);
-        setSelectedExam('');
-        setSelectedSubject('');
-        setSelectedYear('');
-        navigate('/take-examination', { replace: true });
-    };
-
-    useEffect(() => {
-        if (practiceSettings?.exam && practiceSettings?.subject && practiceSettings?.year) {
-            const paper = pastPapersData.find(p => p.exam === practiceSettings.exam && p.subject === practiceSettings.subject && p.year.toString() === practiceSettings.year);
-            if (paper) {
-                setCurrentPaper(paper);
-                setTimeLeft(paper.questions.length * 60);
-            }
-        }
-    }, [practiceSettings]);
-
-    useEffect(() => {
-        if (!currentPaper || showAnswers) return;
-        const timer = setInterval(() => {
-            setTimeLeft(prevTime => {
-                if (prevTime <= 1) {
-                    clearInterval(timer);
-                    handleSubmit();
-                    return 0;
-                }
-                return prevTime - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [currentPaper, showAnswers]);
-
-    const formatTime = (seconds: number) => {
-        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    };
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        const paper = pastPapersData.find(p => p.exam === selectedExam && p.subject === selectedSubject && p.year.toString() === selectedYear);
-        if (paper) {
-            setCurrentPaper(paper);
-            setTimeLeft(paper.questions.length * 60);
-        } else {
-            setCurrentPaper(null);
-        }
-    };
-    
-    const handleSelectOption = (questionId: string, optionKey: string) => {
-        setUserAnswers(prev => ({ ...prev, [questionId]: optionKey }));
-    };
-
-    const handleSubmit = () => {
-        if (!currentPaper) return;
-
-        let correctAnswers = 0;
-        currentPaper.questions.forEach(q => {
+    const handleSubmit = useCallback(() => {
+        if (isFinished) return;
+        
+        let score = 0;
+        questions.forEach(q => {
             if (userAnswers[q.id] === q.answer) {
-                correctAnswers++;
+                score++;
             }
         });
+        setFinalScore(score);
+        setIsFinished(true);
 
-        setScore(correctAnswers);
-
+        // Save result
         const result: QuizResult = {
             id: new Date().toISOString(),
-            paperId: currentPaper.id,
-            exam: currentPaper.exam,
-            subject: currentPaper.subject,
-            year: currentPaper.year,
-            score: correctAnswers,
-            totalQuestions: currentPaper.questions.length,
+            paperId: 'practice-session',
+            exam: 'Practice',
+            subject: practiceSubjects?.join(', ') || 'Mixed',
+            year: new Date().getFullYear(),
+            score: score,
+            totalQuestions: questions.length,
             userAnswers,
             completedAt: Date.now(),
         };
-
         const pastResults: QuizResult[] = JSON.parse(localStorage.getItem('quizResults') || '[]');
         pastResults.unshift(result);
         localStorage.setItem('quizResults', JSON.stringify(pastResults));
 
-        setShowAnswers(true);
+    }, [isFinished, questions, userAnswers, practiceSubjects]);
+
+    useEffect(() => {
+        if (practiceSubjects && practiceSubjects.length > 0) {
+            const preparedQuestions = preparePracticeQuestions(practiceSubjects);
+            setQuestions(preparedQuestions);
+            setActiveSubject(practiceSubjects[0]);
+            setTimeLeft(preparedQuestions.length * 60); // 1 minute per question
+        }
+    }, [practiceSubjects]);
+
+    useEffect(() => {
+        if (questions.length > 0 && !isFinished) {
+            const timer = setInterval(() => {
+                setTimeLeft(prevTime => {
+                    if (prevTime <= 1) {
+                        clearInterval(timer);
+                        handleSubmit();
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [questions, isFinished, handleSubmit]);
+
+    useEffect(() => {
+        if (questions[currentQuestionIndex]) {
+            setActiveSubject(questions[currentQuestionIndex].subject);
+        }
+    }, [currentQuestionIndex, questions]);
+
+    const handleSelectOption = (questionId: string, optionKey: string) => {
+        if (isFinished) return;
+        setUserAnswers(prev => ({ ...prev, [questionId]: optionKey }));
     };
+    
+    const currentQuestion = questions[currentQuestionIndex];
+    const questionsInActiveSubject = useMemo(() => 
+        questions.filter(q => q.subject === activeSubject),
+        [questions, activeSubject]
+    );
+    const currentQuestionNumberInSubject = useMemo(() =>
+        questions.slice(0, currentQuestionIndex + 1).filter(q => q.subject === activeSubject).length,
+        [questions, currentQuestionIndex, activeSubject]
+    );
 
-    const currentQuestion = currentPaper?.questions[currentQuestionIndex];
-
-    if (currentPaper && currentQuestion) {
+    if (!practiceSubjects || practiceSubjects.length === 0) {
         return (
-            <div className="flex flex-col h-full">
-                <div className="bg-white p-3 border-b shadow-sm rounded-t-lg flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="font-bold text-lg text-primary">{currentPaper.subject} ({currentPaper.year})</div>
-                     <div className="flex items-center gap-4">
-                        <span className={`font-bold text-lg px-3 py-1 rounded ${showAnswers ? 'text-slate-600 bg-slate-100' : 'text-red-500 bg-red-100'}`}>
-                            {showAnswers ? 'Finished' : formatTime(timeLeft)}
-                        </span>
-                        <button 
-                             onClick={() => {
-                                if (showAnswers) {
-                                    resetQuizState();
-                                } else if (window.confirm('Are you sure you want to submit?')) {
-                                    handleSubmit();
-                                }
-                            }}
-                            className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                            {showAnswers ? 'Finish Review' : 'Submit'}
-                        </button>
-                    </div>
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center bg-white p-12 rounded-lg shadow-md">
+                    <h1 className="text-2xl font-bold text-slate-700">No Practice Session Found</h1>
+                    <p className="text-slate-500 mt-2">Please start a new session from the practice page.</p>
+                    <Link to="/practice" className="mt-6 inline-block bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-colors">
+                        Go to Practice
+                    </Link>
                 </div>
+            </div>
+        );
+    }
+    
+    if (questions.length === 0) {
+        return <div className="flex items-center justify-center h-full">Loading...</div>;
+    }
 
-                {showAnswers && (
-                    <Card className="my-4 text-center bg-primary-light">
-                        <h2 className="text-xl font-bold text-primary">Quiz Complete! Your Score:</h2>
-                        <p className="text-4xl font-extrabold text-slate-800 mt-2">{score} / {currentPaper.questions.length}</p>
-                    </Card>
-                )}
-
-                <div className="flex-1 bg-gray-50 p-4 overflow-y-auto">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-semibold text-slate-700">Question {currentQuestionIndex + 1}/{currentPaper.questions.length}</h3>
+    if (isFinished) {
+        return (
+            <div className="flex items-center justify-center h-full bg-slate-100">
+                <div className="text-center bg-white p-12 rounded-lg shadow-xl max-w-lg w-full">
+                    <h1 className="text-3xl font-bold text-slate-800">Session Complete!</h1>
+                    <p className="text-slate-600 mt-2">Here is your score:</p>
+                    <p className="text-7xl font-extrabold text-primary my-6">{finalScore} <span className="text-5xl text-slate-500">/ {questions.length}</span></p>
+                    <div className="flex justify-center gap-4">
+                         <Link to="/practice" className="font-semibold text-primary py-3 px-6 rounded-lg border-2 border-primary hover:bg-primary-light transition-colors">
+                            New Practice
+                        </Link>
+                         <Link to="/performance" className="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-colors">
+                            View Performance
+                        </Link>
                     </div>
-                    <p className="text-lg text-slate-800 mb-6">{currentQuestion.question}</p>
-                    <div className="space-y-3">
-                        {Object.entries(currentQuestion.options).map(([key, value]) => {
-                             const isSelected = userAnswers[currentQuestion.id] === key;
-                             const isCorrect = key === currentQuestion.answer;
-                             let optionClass = 'border-gray-300 bg-white hover:bg-gray-100';
-                             if (isSelected) {
-                                optionClass = 'border-blue-500 bg-blue-100 ring-2 ring-blue-300';
-                             }
-                             if(showAnswers) {
-                                 if(isCorrect) optionClass = 'border-green-500 bg-green-100';
-                                 else if(isSelected) optionClass = 'border-red-500 bg-red-100';
-                             }
-
-                            return (
-                                <div key={key} onClick={() => !showAnswers && handleSelectOption(currentQuestion.id, key)} className={`p-4 rounded-lg border flex items-center transition-all duration-200 ${showAnswers ? 'cursor-default' : 'cursor-pointer'} ${optionClass}`}>
-                                    <span className="font-bold mr-3">{key}.</span>
-                                    <span>{value}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                
-                <div className="bg-white p-4 border-t shadow-inner rounded-b-lg">
-                    <div className="flex justify-between items-center mb-4">
-                        <button onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))} disabled={currentQuestionIndex === 0} className="bg-blue-600 text-white font-semibold py-2 px-6 rounded disabled:bg-gray-300">Previous</button>
-                        <button onClick={() => setCurrentQuestionIndex(Math.min(currentPaper.questions.length - 1, currentQuestionIndex + 1))} disabled={currentQuestionIndex === currentPaper.questions.length - 1} className="bg-green-600 text-white font-semibold py-2 px-8 rounded disabled:bg-gray-300">Next</button>
-                    </div>
-                     <p className="text-sm font-semibold text-slate-600 mb-2">Attempted: {Object.keys(userAnswers).length}/{currentPaper.questions.length}</p>
-                     <div className="grid grid-cols-10 gap-2">
-                        {currentPaper.questions.map((q, index) => {
-                            const isAttempted = userAnswers[q.id];
-                            const isCurrent = index === currentQuestionIndex;
-                            let gridClass = 'bg-gray-200 hover:bg-gray-300';
-                            if (isAttempted) gridClass = 'bg-primary text-white';
-                            if (isCurrent) gridClass = 'bg-yellow-400 text-black ring-2 ring-yellow-600';
-
-                            return (
-                                <button key={q.id} onClick={() => setCurrentQuestionIndex(index)} className={`w-full text-center py-1 rounded font-semibold text-sm transition-colors ${gridClass}`}>
-                                    {index + 1}
-                                </button>
-                            );
-                        })}
-                     </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-800">Past Questions</h1>
-                <p className="text-slate-600">Find and review past examination papers to prepare for your tests.</p>
+        <div className="flex flex-col h-screen bg-white font-sans">
+            {/* Header */}
+            <header className="bg-primary text-white p-3 flex justify-between items-center shadow-md flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <img src="https://picsum.photos/40" alt="profile" className="w-9 h-9 rounded-full object-cover border-2 border-white"/>
+                    <span className="font-semibold">OWOIDIGHE</span>
+                </div>
+                <button 
+                    onClick={() => { if (window.confirm('Are you sure you want to submit?')) handleSubmit(); }}
+                    className="bg-red-600 hover:bg-red-700 font-bold py-2 px-8 rounded-lg transition-colors flex items-center gap-2"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    Submit
+                </button>
+                <div className="bg-orange-500 text-white font-bold text-lg tracking-wider px-4 py-1 rounded-full w-40 text-center">
+                    {formatTime(timeLeft)}
+                </div>
+            </header>
+
+            {/* Subject Tabs */}
+            <div className="border-b border-gray-200 flex-shrink-0">
+                <div className="flex items-center -mb-px px-4 overflow-x-auto">
+                    {practiceSubjects.map(subject => (
+                        <button
+                            key={subject}
+                            onClick={() => setActiveSubject(subject)}
+                            className={`py-3 px-4 font-semibold text-sm transition-colors whitespace-nowrap ${activeSubject === subject ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            {subject}
+                        </button>
+                    ))}
+                </div>
             </div>
-            <Card>
-                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div>
-                        <label htmlFor="examBody" className="block text-sm font-medium text-slate-700 mb-1">Exam Body</label>
-                        <select id="examBody" value={selectedExam} onChange={e => { setSelectedExam(e.target.value); setSelectedSubject(''); setSelectedYear(''); }} className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2" required>
-                            <option value="" disabled>Select Exam</option>
-                            {examOptions.map(exam => <option key={exam} value={exam}>{exam}</option>)}
-                        </select>
+
+            {/* Main Content */}
+            <main className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="font-bold text-gray-700">Question {currentQuestionNumberInSubject}/{questionsInActiveSubject.length}</h2>
                     </div>
-                    <div>
-                        <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-                        <select id="subject" value={selectedSubject} onChange={e => { setSelectedSubject(e.target.value); setSelectedYear(''); }} disabled={!selectedExam} className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 disabled:bg-gray-200" required>
-                            <option value="" disabled>Select Subject</option>
-                            {subjectOptions.map(subject => <option key={subject} value={subject}>{subject}</option>)}
-                        </select>
+                    <p className="text-lg text-slate-800 mb-6 min-h-[60px]">{currentQuestion.question}</p>
+                    <div className="space-y-4">
+                        {Object.entries(currentQuestion.options).map(([key, value]) => (
+                            <label key={key} className={`p-4 rounded-lg border-2 flex items-start gap-4 transition-all cursor-pointer ${userAnswers[currentQuestion.id] === key ? 'border-primary bg-primary-light' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                                <input
+                                    type="radio"
+                                    name={currentQuestion.id}
+                                    value={key}
+                                    checked={userAnswers[currentQuestion.id] === key}
+                                    onChange={() => handleSelectOption(currentQuestion.id, key)}
+                                    className="mt-1 h-5 w-5 text-primary focus:ring-primary border-gray-300"
+                                />
+                                <span className="font-bold text-slate-800">{key}.</span>
+                                <span className="text-slate-700">{value}</span>
+                            </label>
+                        ))}
                     </div>
-                    <div>
-                        <label htmlFor="year" className="block text-sm font-medium text-slate-700 mb-1">Year</label>
-                        <select id="year" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} disabled={!selectedSubject} className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 disabled:bg-gray-200" required>
-                            <option value="" disabled>Select Year</option>
-                            {yearOptions.sort((a, b) => b - a).map(year => <option key={year} value={year}>{year}</option>)}
-                        </select>
+                </div>
+            </main>
+
+            {/* Footer Navigator */}
+            <footer className="bg-white p-4 border-t shadow-inner flex-shrink-0">
+                <div className="max-w-5xl mx-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <button onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))} disabled={currentQuestionIndex === 0} className="bg-blue-600 text-white font-semibold py-2 px-8 rounded-lg disabled:bg-gray-300 transition-colors">&lt; Previous</button>
+                        <button onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentQuestionIndex === questions.length - 1} className="bg-green-600 text-white font-semibold py-2 px-8 rounded-lg disabled:bg-gray-300 transition-colors">Next &gt;</button>
                     </div>
-                    <button type="submit" className="w-full bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition">Start Test</button>
-                </form>
-            </Card>
-            {currentPaper === null && selectedYear && (
-                 <Card className="text-center py-12">
-                    <h2 className="text-xl font-bold text-slate-700">No Paper Found</h2>
-                    <p className="text-slate-600 mt-2">We couldn't find a past paper that matches your selection. Please try different options.</p>
-                </Card>
-            )}
+                    <p className="text-sm font-semibold text-slate-600 mb-2">Attempted: {Object.keys(userAnswers).length}/{questions.length}</p>
+                    <div className="overflow-x-auto pb-2">
+                        <div className="flex items-center space-x-2">
+                            {questions.map((q, index) => (
+                                <button
+                                    key={q.id}
+                                    onClick={() => setCurrentQuestionIndex(index)}
+                                    className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded font-semibold text-sm border transition-colors ${
+                                        index === currentQuestionIndex 
+                                            ? 'bg-blue-500 border-blue-700 text-white ring-2 ring-blue-300' 
+                                            : userAnswers[q.id] 
+                                            ? 'bg-gray-400 border-gray-500 text-white' 
+                                            : 'bg-white border-gray-300 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };

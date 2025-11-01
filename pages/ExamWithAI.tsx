@@ -1,8 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { sendMessageToAI } from '../services/geminiService';
 import { ChatMessage } from '../types';
 import Card from '../components/Card';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 // --- ICONS ---
 const ChatIcon = () => (
@@ -34,11 +34,13 @@ const formatTimestamp = (timestamp: number) => {
 };
 
 const suggestivePrompts = [
-    "Explain photosynthesis to me like I'm 10",
-    "Give me 5 practice questions on English Tenses",
+    "Explain photosynthesis",
+    "Practice questions on English Tenses",
     "Summarize Newton's Laws of Motion",
-    "Help me create a study plan for Chemistry",
+    "Create a study plan for Chemistry",
 ];
+
+const CHAT_HISTORY_KEY = 'aiBuddyChatHistory';
 
 
 const ExamWithAI: React.FC = () => {
@@ -47,15 +49,45 @@ const ExamWithAI: React.FC = () => {
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [subject, setSubject] = useState('');
     const [topic, setTopic] = useState('');
     const [showPrompts, setShowPrompts] = useState(false);
 
+    // Load chat history from localStorage on initial render
+    useEffect(() => {
+        const savedMessages = localStorage.getItem(CHAT_HISTORY_KEY);
+        if (savedMessages) {
+            try {
+                const parsedMessages: ChatMessage[] = JSON.parse(savedMessages);
+                if (parsedMessages.length > 0) {
+                    setMessages(parsedMessages);
+                    setMode('chat');
+                    setShowPrompts(false);
+                }
+            } catch (error) {
+                console.error("Failed to parse chat history from localStorage", error);
+                localStorage.removeItem(CHAT_HISTORY_KEY);
+            }
+        }
+    }, []);
+
+    // Scroll to the bottom of the chat on new messages
     useEffect(() => {
         if (mode === 'chat') {
             chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, mode]);
+
+    // Save chat history to localStorage whenever it changes
+    useEffect(() => {
+        if (messages.length > 0) {
+            localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages));
+        } else {
+            localStorage.removeItem(CHAT_HISTORY_KEY);
+        }
+    }, [messages]);
+
 
     const handleStartChat = () => {
         setMessages([
@@ -71,14 +103,11 @@ const ExamWithAI: React.FC = () => {
             alert('Please provide both a subject and a topic.');
             return;
         }
-
         const initialPrompt = `Let's start a practice session on the topic of "${topic}" in the subject "${subject}". Please generate the first practice question for me.`;
-        
         setMode('chat');
         setIsLoading(true);
         setMessages([]);
         setShowPrompts(false);
-
         try {
             const aiResponse = await sendMessageToAI(initialPrompt, []);
             setMessages([{ role: 'model', text: aiResponse, timestamp: Date.now() }]);
@@ -92,9 +121,7 @@ const ExamWithAI: React.FC = () => {
 
     const sendUserMessageToAI = async (messageText: string) => {
         if (!messageText.trim() || isLoading) return;
-
         setShowPrompts(false);
-
         const newMessages: ChatMessage[] = [...messages, { role: 'user', text: messageText, timestamp: Date.now() }];
         setMessages(newMessages);
         setUserInput('');
@@ -108,6 +135,9 @@ const ExamWithAI: React.FC = () => {
             setMessages([...newMessages, { role: 'model', text: 'Sorry, I encountered an error. Please try again.', timestamp: Date.now() }]);
         } finally {
             setIsLoading(false);
+            if (textareaRef.current) {
+                textareaRef.current.style.height = 'auto'; // Reset height after sending
+            }
         }
     };
     
@@ -115,7 +145,21 @@ const ExamWithAI: React.FC = () => {
         e.preventDefault();
         sendUserMessageToAI(userInput);
     };
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage(e as unknown as React.FormEvent);
+        }
+    };
 
+    const autoResizeTextarea = () => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    };
+    
     const handlePromptClick = (prompt: string) => {
         sendUserMessageToAI(prompt);
     };
@@ -127,6 +171,7 @@ const ExamWithAI: React.FC = () => {
         setTopic('');
         setShowPrompts(false);
         setMode('selection');
+        localStorage.removeItem(CHAT_HISTORY_KEY);
     };
 
     if (mode === 'selection') {
@@ -159,35 +204,15 @@ const ExamWithAI: React.FC = () => {
                     <h2 className="text-2xl font-bold text-slate-800">Setup Practice Session</h2>
                     <div>
                         <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-                        <input
-                            id="subject"
-                            type="text"
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                            placeholder="e.g., Physics"
-                            className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                            required
-                        />
+                        <input id="subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g., Physics" className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required />
                     </div>
                     <div>
                         <label htmlFor="topic" className="block text-sm font-medium text-slate-700 mb-1">Topic</label>
-                        <input
-                            id="topic"
-                            type="text"
-                            value={topic}
-                            onChange={(e) => setTopic(e.target.value)}
-                            placeholder="e.g., Newtonian Mechanics"
-                            className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                            required
-                        />
+                        <input id="topic" type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g., Newtonian Mechanics" className="w-full bg-gray-100 border-gray-200 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required />
                     </div>
                     <div className="flex items-center justify-end gap-4 pt-2">
-                        <button type="button" onClick={() => setMode('selection')} className="font-semibold text-slate-600 px-6 py-2 rounded-lg hover:bg-gray-100 transition">
-                            Back
-                        </button>
-                        <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition">
-                            Start Practice
-                        </button>
+                        <button type="button" onClick={() => setMode('selection')} className="font-semibold text-slate-600 px-6 py-2 rounded-lg hover:bg-gray-100 transition">Back</button>
+                        <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-accent transition">Start Practice</button>
                     </div>
                 </form>
             </Card>
@@ -195,36 +220,35 @@ const ExamWithAI: React.FC = () => {
     }
     
     return (
-        <div className="flex flex-col bg-white rounded-2xl shadow-sm h-full max-h-[calc(100vh-120px)]">
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="flex flex-col bg-white rounded-2xl shadow-sm h-full max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-160px)]">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
                 <div>
                     <h1 className="text-xl font-bold text-slate-800">Exam With AI-buddy</h1>
                     <p className="text-sm text-slate-600">Your personal AI tutor for exam preparation.</p>
                 </div>
-                <button 
-                    onClick={handleNewSession}
-                    className="font-semibold text-primary py-2 px-4 rounded-lg border border-primary hover:bg-primary-light transition-colors duration-200 text-sm"
-                >
-                    New Session
-                </button>
+                <button onClick={handleNewSession} className="font-semibold text-primary py-2 px-4 rounded-lg border border-primary hover:bg-primary-light transition-colors duration-200 text-sm">New Session</button>
             </div>
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6">
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                         {msg.role === 'model' && <AiIcon />}
                         <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                           <div className={`max-w-lg p-3 rounded-2xl ${msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-gray-100 text-slate-800 rounded-bl-none'}`}>
-                                <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
+                           <div className={`max-w-xs sm:max-w-md lg:max-w-2xl p-4 rounded-2xl shadow-sm ${msg.role === 'user' ? 'bg-primary text-white rounded-br-lg' : 'bg-gray-100 text-slate-800 rounded-bl-lg'}`}>
+                                {msg.role === 'model' ? (
+                                    <MarkdownRenderer content={msg.text} />
+                                ) : (
+                                    <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                                )}
                            </div>
-                           <span className="text-xs text-gray-400 mt-1 px-1">{formatTimestamp(msg.timestamp)}</span>
+                           <span className="text-xs text-gray-400 mt-1.5 px-1">{formatTimestamp(msg.timestamp)}</span>
                         </div>
                          {msg.role === 'user' && <UserIcon />}
                     </div>
                 ))}
                 {isLoading && (
-                     <div className="flex items-start gap-4">
+                     <div className="flex items-start gap-3">
                         <AiIcon />
-                        <div className="max-w-lg p-4 rounded-2xl bg-gray-100 text-slate-800 rounded-bl-none">
+                        <div className="p-4 rounded-2xl rounded-bl-lg bg-gray-100 text-slate-800">
                            <div className="flex items-center space-x-2">
                                 <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                                 <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
@@ -233,15 +257,18 @@ const ExamWithAI: React.FC = () => {
                         </div>
                     </div>
                 )}
+                <div ref={chatEndRef} />
+            </div>
+            <div className="p-3 border-t border-gray-200 bg-white mt-auto flex-shrink-0">
                  {showPrompts && !isLoading && messages.length <= 1 && (
-                    <div className="pt-4">
-                        <p className="text-sm font-semibold text-slate-600 mb-2 text-center">Try one of these prompts:</p>
-                        <div className="flex flex-wrap gap-2 justify-center">
+                    <div className="pb-3">
+                        <p className="text-xs font-semibold text-slate-500 mb-2 px-1">Try one of these prompts:</p>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2">
                             {suggestivePrompts.map((prompt, index) => (
                                 <button
                                     key={index}
                                     onClick={() => handlePromptClick(prompt)}
-                                    className="bg-primary-light text-primary text-sm font-medium px-4 py-2 rounded-full hover:bg-secondary-light transition-colors"
+                                    className="bg-gray-100 text-slate-700 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
                                 >
                                     {prompt}
                                 </button>
@@ -249,26 +276,27 @@ const ExamWithAI: React.FC = () => {
                         </div>
                     </div>
                 )}
-                <div ref={chatEndRef} />
-            </div>
-            <div className="p-4 border-t border-gray-200 bg-white">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-4">
-                    <input
-                        type="text"
+                <form onSubmit={handleSendMessage} className="flex items-end gap-3">
+                    <textarea
+                        ref={textareaRef}
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="Type your answer..."
-                        className="flex-1 bg-gray-100 border border-gray-200 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary"
+                        onInput={autoResizeTextarea}
+                        onKeyDown={handleKeyDown}
+                        rows={1}
+                        placeholder="Ask your AI-buddy anything..."
+                        className="flex-1 bg-gray-100 border-gray-200 rounded-xl py-2 px-4 resize-none focus:outline-none focus:ring-2 focus:ring-primary max-h-40 overflow-y-auto"
                         disabled={isLoading}
+                        aria-label="Chat input"
                     />
                     <button
                         type="submit"
                         disabled={isLoading || !userInput.trim()}
-                        className="bg-primary text-white font-bold p-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        className="bg-primary text-white font-bold p-3 rounded-lg hover:bg-accent transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed flex-shrink-0"
                         aria-label="Send message"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                     </button>
                 </form>

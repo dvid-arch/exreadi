@@ -69,3 +69,14 @@ export interface MemoryCardType {
   isFlipped: boolean;
   isMatched: boolean;
 }
+
+export interface LeaderboardScore {
+  name: string;
+  score: number;
+  totalQuestions: number;
+  date: number;
+}
+
+export interface ChallengeQuestion extends PastQuestion {
+  subject: string;
+}
