@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CareerIcon as CareerIconImported } from '../constants'; // Using an alias to avoid naming conflict
@@ -16,7 +17,7 @@ const DictionaryIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="
 const tiles = [
     { title: 'Practice For UTME', color: 'tile-blue', path: '/practice', icon: <PracticeIcon /> },
     { title: 'Classroom', color: 'tile-pink', path: '/study-guides', icon: <ClassroomIcon /> },
-    { title: 'Question Search', color: 'tile-green', path: '/take-examination', icon: <SearchIcon /> },
+    { title: 'Question Search', color: 'tile-green', path: '/question-search', icon: <SearchIcon /> },
     { title: 'Performance Analysis', color: 'tile-orange', path: '/performance', icon: <PerformanceIcon /> },
     { title: 'Educational Games', color: 'tile-yellow', path: '/games', icon: <GamesIcon /> },
     { title: 'UTME Literature Books', color: 'tile-purple', path: '/literature', icon: <BookIcon /> },

@@ -18,7 +18,7 @@ export const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" classNam
 export const NAV_ITEMS: NavItemType[] = [
     { path: '/dashboard', name: 'Dashboard', icon: <HomeIcon /> },
     { path: '/practice', name: 'Practice', icon: <PracticeIcon /> },
-    { path: '/take-examination', name: 'Past Questions', icon: <PastQuestionsIcon /> },
+    { path: '/question-search', name: 'Past Questions', icon: <PastQuestionsIcon /> },
     { path: '/flashcards', name: 'FlashCards', icon: <FlashcardIcon /> },
     { path: '/ai-buddy', name: 'AI Tutor', icon: <AiIcon /> },
     { path: '/study-guides', name: 'Study Guides', icon: <GuideIcon /> },

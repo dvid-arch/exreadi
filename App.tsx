@@ -14,6 +14,7 @@ import MemoryMatchGame from './pages/MemoryMatchGame';
 import CareerInstitutions from './pages/CareerInstitutions';
 import UtmeChallenge from './pages/UtmeChallenge';
 import ComingSoon from './pages/ComingSoon';
+import QuestionSearch from './pages/QuestionSearch';
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -33,6 +34,7 @@ const App: React.FC = () => {
             <Route path="/practice" element={<Quizzes />} />
             <Route path="/ai-buddy" element={<ExamWithAI />} />
             <Route path="/take-examination" element={<TakeExamination />} />
+            <Route path="/question-search" element={<QuestionSearch />} />
             <Route path="/study-guides" element={<StudyGuides />} />
             <Route path="/games" element={<EducationalGames />} />
             <Route path="/games/memory-match" element={<MemoryMatchGame />} />

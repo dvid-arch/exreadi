@@ -32,14 +32,17 @@ const Performance: React.FC = () => {
         const totalQuestions = results.reduce((sum, r) => sum + r.totalQuestions, 0);
         const avg = totalQuestions > 0 ? (totalScore / totalQuestions) * 100 : 0;
 
-        const bySubject = results.reduce((acc, result) => {
+        // FIX: Explicitly typed the accumulator for the `reduce` function.
+        // Without this, TypeScript infers the initial `{}` as an empty object type, 
+        // leading to errors when trying to access properties on it.
+        const bySubject = results.reduce<Record<string, { scores: number[]; totalQuestions: number }>>((acc, result) => {
             if (!acc[result.subject]) {
                 acc[result.subject] = { scores: [], totalQuestions: 0 };
             }
             acc[result.subject].scores.push(result.score);
             acc[result.subject].totalQuestions += result.totalQuestions;
             return acc;
-        }, {} as Record<string, { scores: number[], totalQuestions: number }>);
+        }, {});
 
         const subjectAverages = Object.entries(bySubject).map(([subject, data]) => {
             const totalScored = data.scores.reduce((sum, s) => sum + s, 0);
