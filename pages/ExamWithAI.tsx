@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { sendMessageToAI } from '../services/geminiService';
-import { ChatMessage } from '../types';
-import Card from '../components/Card';
-import MarkdownRenderer from '../components/MarkdownRenderer';
+import { sendMessageToAI } from '../services/geminiService.ts';
+import { ChatMessage } from '../types.ts';
+import Card from '../components/Card.tsx';
+import MarkdownRenderer from '../components/MarkdownRenderer.tsx';
 
 // --- ICONS ---
 const ChatIcon = () => (

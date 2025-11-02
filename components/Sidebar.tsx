@@ -2,8 +2,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 // FIX: Added LogoutIcon to the import from constants.
-import { NAV_ITEMS, LogoutIcon } from '../constants';
-import { NavItemType } from '../types';
+import { NAV_ITEMS, LogoutIcon } from '../constants.tsx';
+import { NavItemType } from '../types.ts';
 
 interface SidebarProps {
   isOpen: boolean;

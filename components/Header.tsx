@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MenuIcon, NAV_ITEMS } from '../constants';
+import { MenuIcon, NAV_ITEMS } from '../constants.tsx';
 
 const Logo = () => (
     <div className="flex items-center space-x-2">

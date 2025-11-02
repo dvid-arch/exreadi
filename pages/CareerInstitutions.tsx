@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
-import Card from '../components/Card';
-import { researchTopic } from '../services/geminiService';
-import { CareerIcon } from '../constants';
-import MarkdownRenderer from '../components/MarkdownRenderer';
+import Card from '../components/Card.tsx';
+import { researchTopic } from '../services/geminiService.ts';
+import { CareerIcon } from '../constants.tsx';
+import MarkdownRenderer from '../components/MarkdownRenderer.tsx';
 
 const Spinner = () => (
     <div className="flex justify-center items-center py-10">

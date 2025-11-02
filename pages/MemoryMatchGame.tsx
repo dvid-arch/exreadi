@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Card from '../components/Card';
-import { memoryMatchConcepts } from '../data/gameData';
-import { MemoryCardType } from '../types';
+import Card from '../components/Card.tsx';
+import { memoryMatchConcepts } from '../data/gameData.ts';
+import { MemoryCardType } from '../types.ts';
 
 // Helper function to shuffle an array
 const shuffleArray = (array: any[]) => {

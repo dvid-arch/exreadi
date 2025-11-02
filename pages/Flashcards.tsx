@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import Card from '../components/Card';
-import { Flashcard as FlashcardType, FlashcardDeck } from '../types';
+import Card from '../components/Card.tsx';
+import { Flashcard as FlashcardType, FlashcardDeck } from '../types.ts';
 
 // --- ICONS ---
 const PlusIcon = () => (

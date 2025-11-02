@@ -1,4 +1,5 @@
-import { StudyGuide } from '../types';
+
+import { StudyGuide } from '../types.ts';
 
 export const allStudyGuides: StudyGuide[] = [
   {

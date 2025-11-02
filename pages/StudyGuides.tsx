@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import Card from '../components/Card';
-import { generateStudyGuide } from '../services/geminiService';
-import { allStudyGuides } from '../data/studyGuides';
-import { StudyGuide } from '../types';
-import MarkdownRenderer from '../components/MarkdownRenderer';
+import Card from '../components/Card.tsx';
+import { generateStudyGuide } from '../services/geminiService.ts';
+import { allStudyGuides } from '../data/studyGuides.ts';
+import { StudyGuide } from '../types.ts';
+import MarkdownRenderer from '../components/MarkdownRenderer.tsx';
 
 // Loading spinner component
 const Spinner = () => (

@@ -1,4 +1,5 @@
-import { PastPaper } from '../types';
+
+import { PastPaper } from '../types.ts';
 
 export const pastPapersData: PastPaper[] = [
   {

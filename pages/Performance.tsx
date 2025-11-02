@@ -1,10 +1,8 @@
 
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import Card from '../components/Card';
-import { QuizResult } from '../types';
+import Card from '../components/Card.tsx';
+import { QuizResult } from '../types.ts';
 
 const Performance: React.FC = () => {
     const [results, setResults] = useState<QuizResult[]>([]);

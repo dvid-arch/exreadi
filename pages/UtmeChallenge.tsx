@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import Card from '../components/Card';
-import { pastPapersData } from '../data/pastQuestions';
-import { LeaderboardScore, ChallengeQuestion } from '../types';
+import Card from '../components/Card.tsx';
+import { pastPapersData } from '../data/pastQuestions.ts';
+import { LeaderboardScore, ChallengeQuestion } from '../types.ts';
 
 // --- ICONS ---
 const TrophyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" /><path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2h-2m-4-4h2a2 2 0 012 2v4a2 2 0 01-2 2h-2m-4 4H5a2 2 0 01-2-2v-4a2 2 0 012-2h2" /></svg>;

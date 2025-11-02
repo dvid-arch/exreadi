@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '../components/Card';
+import Card from '../components/Card.tsx';
 
 // A static list of common UTME subjects
 const subjects = ['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Government', 'Literature', 'CRS'];

@@ -1,7 +1,8 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { ChallengeQuestion, QuizResult } from '../types';
-import { pastPapersData } from '../data/pastQuestions';
+import { ChallengeQuestion, QuizResult } from '../types.ts';
+import { pastPapersData } from '../data/pastQuestions.ts';
 
 const QUESTIONS_PER_SUBJECT = 10;
 

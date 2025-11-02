@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Card from '../components/Card';
-import { pastPapersData } from '../data/pastQuestions';
-import { PastQuestion } from '../types';
+import Card from '../components/Card.tsx';
+import { pastPapersData } from '../data/pastQuestions.ts';
+import { PastQuestion } from '../types.ts';
 
 interface SearchResult extends PastQuestion {
     subject: string;

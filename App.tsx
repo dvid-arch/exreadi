@@ -1,20 +1,21 @@
+
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
-import Flashcards from './pages/Flashcards';
-import Quizzes from './pages/Quizzes';
-import ExamWithAI from './pages/ExamWithAI';
-import StudyGuides from './pages/StudyGuides';
-import TakeExamination from './pages/TakeExamination';
-import EducationalGames from './pages/EducationalGames';
-import Performance from './pages/Performance';
-import MemoryMatchGame from './pages/MemoryMatchGame';
-import CareerInstitutions from './pages/CareerInstitutions';
-import UtmeChallenge from './pages/UtmeChallenge';
-import ComingSoon from './pages/ComingSoon';
-import QuestionSearch from './pages/QuestionSearch';
+import Header from './components/Header.tsx';
+import Sidebar from './components/Sidebar.tsx';
+import Dashboard from './pages/Dashboard.tsx';
+import Flashcards from './pages/Flashcards.tsx';
+import Quizzes from './pages/Quizzes.tsx';
+import ExamWithAI from './pages/ExamWithAI.tsx';
+import StudyGuides from './pages/StudyGuides.tsx';
+import TakeExamination from './pages/TakeExamination.tsx';
+import EducationalGames from './pages/EducationalGames.tsx';
+import Performance from './pages/Performance.tsx';
+import MemoryMatchGame from './pages/MemoryMatchGame.tsx';
+import CareerInstitutions from './pages/CareerInstitutions.tsx';
+import UtmeChallenge from './pages/UtmeChallenge.tsx';
+import ComingSoon from './pages/ComingSoon.tsx';
+import QuestionSearch from './pages/QuestionSearch.tsx';
 
 const App: React.FC = () => {
   const location = useLocation();
